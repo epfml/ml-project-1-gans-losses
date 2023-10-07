@@ -36,3 +36,43 @@ def create_csv_submission(ids, y_pred, name):
         writer.writeheader()
         for r1, r2 in zip(ids, y_pred):
             writer.writerow({"Id": int(r1), "Prediction": int(r2)})
+
+
+def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
+    """Minibatch iterator generator
+
+    This function generates a minibatch iterator for a dataset.
+    Data can be randomly shuffled to avoid ordering in the original data messing with the randomness of the minibatches.
+
+    Parameters
+    ----------
+    y : numpy array of shape (n, )
+        The output vector of the training set
+    tx : numpy array of shape (n, d)
+        The input matrix of the training set (with the bias term)
+    batch_size : int
+        the size of the minibatch
+    num_batches : int
+        The number of batches to generate
+    shuffle : Boolean
+        This variable indicates if we want to shuffle the data before generating the iterator
+
+    Returns
+    -------
+    iter: iter
+        The iterator which gives mini-batches of `batch_size` matching elements from `y` and `tx`
+    """
+    data_size = len(y)
+
+    if shuffle:
+        shuffle_indices = np.random.permutation(np.arange(data_size))
+        shuffled_y = y[shuffle_indices]
+        shuffled_tx = tx[shuffle_indices]
+    else:
+        shuffled_y = y
+        shuffled_tx = tx
+    for batch_num in range(num_batches):
+        start_index = batch_num * batch_size
+        end_index = min((batch_num + 1) * batch_size, data_size)
+        if start_index != end_index:
+            yield shuffled_y[start_index:end_index], shuffled_tx[start_index:end_index]
