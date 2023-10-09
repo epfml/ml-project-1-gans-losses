@@ -124,7 +124,28 @@ def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
 
 
 def least_squares(y, tx):
-    raise NotImplementedError
+    """Least squares regression using normal equations
+
+    This function implements the least square algorithm using the MSE loss function.
+
+    Parameters
+    ----------
+    y : numpy array of shape (n, )
+        The output vector of the training set
+    tx : numpy array of shape (n,d)
+        The input matrix of the training set (with the bias term)
+
+    Returns
+    -------
+    w : numpy array
+        The final weights vector
+    loss : float
+        The final loss value
+    """
+    w = np.linalg.solve(tx, y)
+    mse = np.square(y - np.matmul(tx,w)).mean()
+    return w, mse
+
 
 
 def ridge_regression(y, tx, lambda_):
