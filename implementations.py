@@ -142,10 +142,8 @@ def least_squares(y, tx):
     loss : float
         The final loss value
     """
-    w = np.linalg.solve(tx, y)
-    mse = np.square(y - np.matmul(tx,w)).mean()
-    return w, mse
-
+    w = np.linalg.solve(tx.T.dot(tx), tx.T.dot(y))
+    return w, compute_mse_loss(y, tx, w)
 
 
 def ridge_regression(y, tx, lambda_):
@@ -279,4 +277,12 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
 
 
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
+    w = initial_w
+    loss = calculate_loss(y, tx, w)
+
+    for _ in range(max_iters):
+        grad = calculate_grad(y, tx, w)
+
+    #    w = w - gamma * 
+
     raise NotImplementedError
