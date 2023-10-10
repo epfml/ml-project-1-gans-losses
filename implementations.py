@@ -74,10 +74,9 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
         The final loss value
     """
     w = initial_w
-    for n_iter in range(max_iters):
+    for _ in range(max_iters):
         # compute gradient and loss
         gradient = compute_mse_gradient(y, tx, w)
-        loss = compute_mse_loss(y, tx, w)
         # update w by gradient
         w = w - gamma * gradient
     return w, compute_mse_loss(y, tx, w)
@@ -142,10 +141,8 @@ def least_squares(y, tx):
     loss : float
         The final loss value
     """
-    w = np.linalg.solve(tx, y)
-    mse = np.square(y - np.matmul(tx,w)).mean()
-    return w, mse
-
+    w = np.linalg.solve(tx.T.dot(tx), tx.T.dot(y))
+    return w, compute_mse_loss(y, tx, w)
 
 
 def ridge_regression(y, tx, lambda_):
@@ -195,7 +192,7 @@ def sigmoid(t):
     return 1 / (1 + np.exp(-t))
 
 
-def calculate_loss(y, tx, w):
+def calculate_log_loss(y, tx, w):
     """Negative Log-Likelihood Loss Function
 
     This function calculates the negative log-likelihood loss for logistic regression.
@@ -217,7 +214,7 @@ def calculate_loss(y, tx, w):
     return np.sum(np.log(1 + np.exp(tx.dot(w))) - y * tx.dot(w)) / len(y)
 
 
-def calculate_grad(y, tx, w):
+def calculate_log_grad(y, tx, w):
     """Calculate the gradient for Logistic Regression
 
     This function computes the gradient of the negative log-likelihood loss function.
@@ -267,16 +264,76 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
 
     """
     w = initial_w
-    loss = calculate_loss(y, tx, w)
 
     for _ in range(max_iters):
-        grad = calculate_grad(y, tx, w)
+        grad = calculate_log_grad(y, tx, w)
 
         w = w - gamma * grad
-        loss = calculate_loss(y, tx, w)
+    loss = calculate_log_loss(y, tx, w)
 
     return w, loss
 
 
+def calculate_reg_grad(y, tx, w, lambda_):
+    """Calculate the gradient for Logistic Regression
+
+    This function computes the gradient of the negative log-likelihood loss function.
+
+    Parameters
+    ----------
+    y : numpy array of shape (n, )
+        The output vector of the training set
+    tx : numpy array of shape (n, d)
+        The input matrix of the training set (with the bias term)
+    w : numpy array of shape (d, )
+        The weights vector.
+    lambda_ : float
+        The regularization parameter
+
+    Returns
+    -------
+    numpy array of shape (d, )
+        The gradient vector.
+
+    """
+    grad = tx.T.dot(sigmoid(tx.dot(w)) - y) / y.size
+    return grad + 2 * lambda_ * w
+
+
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
-    raise NotImplementedError
+    """Logistic Regression
+
+     This function performs logistic regression using gradient descent optimization.
+
+     Parameters
+     ----------
+    y : numpy array of shape (n, )
+        The output vector of the training set
+    tx : numpy array of shape (n, d)
+        The input matrix of the training set (with the bias term)
+    lambda_ : float
+        The regularization parameter
+    initial_w : numpy array of shape (d, )
+        The initial weights vector.
+    max_iters : int
+        The maximum number of iterations for gradient descent.
+    gamma : float
+        The learning rate.
+
+    Returns
+    -------
+    w : numpy array
+         The final weights vector after optimization.
+    loss : float
+         The final loss value after optimization.
+
+    """
+    w = initial_w
+
+    for _ in range(max_iters):
+        grad = calculate_reg_grad(y, tx, w, lambda_)
+
+        w = w - gamma * grad
+
+    loss = calculate_log_loss(y, tx, w)
+    return w, loss
