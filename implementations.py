@@ -74,10 +74,9 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
         The final loss value
     """
     w = initial_w
-    for n_iter in range(max_iters):
+    for _ in range(max_iters):
         # compute gradient and loss
         gradient = compute_mse_gradient(y, tx, w)
-        loss = compute_mse_loss(y, tx, w)
         # update w by gradient
         w = w - gamma * gradient
     return w, compute_mse_loss(y, tx, w)
@@ -193,7 +192,7 @@ def sigmoid(t):
     return 1 / (1 + np.exp(-t))
 
 
-def calculate_loss(y, tx, w):
+def calculate_log_loss(y, tx, w):
     """Negative Log-Likelihood Loss Function
 
     This function calculates the negative log-likelihood loss for logistic regression.
@@ -215,7 +214,7 @@ def calculate_loss(y, tx, w):
     return np.sum(np.log(1 + np.exp(tx.dot(w))) - y * tx.dot(w)) / len(y)
 
 
-def calculate_grad(y, tx, w):
+def calculate_log_grad(y, tx, w):
     """Calculate the gradient for Logistic Regression
 
     This function computes the gradient of the negative log-likelihood loss function.
@@ -265,13 +264,12 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
 
     """
     w = initial_w
-    loss = calculate_loss(y, tx, w)
 
     for _ in range(max_iters):
-        grad = calculate_grad(y, tx, w)
+        grad = calculate_log_grad(y, tx, w)
 
         w = w - gamma * grad
-        loss = calculate_loss(y, tx, w)
+    loss = calculate_log_loss(y, tx, w)
 
     return w, loss
 
@@ -337,5 +335,5 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
 
         w = w - gamma * grad
 
-    loss = calculate_loss(y, tx, w)
+    loss = calculate_log_loss(y, tx, w)
     return w, loss
