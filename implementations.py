@@ -276,13 +276,66 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
     return w, loss
 
 
+def calculate_reg_grad(y, tx, w, lambda_):
+    """Calculate the gradient for Logistic Regression
+
+    This function computes the gradient of the negative log-likelihood loss function.
+
+    Parameters
+    ----------
+    y : numpy array of shape (n, )
+        The output vector of the training set
+    tx : numpy array of shape (n, d)
+        The input matrix of the training set (with the bias term)
+    w : numpy array of shape (d, )
+        The weights vector.
+    lambda_ : float
+        The regularization parameter
+
+    Returns
+    -------
+    numpy array of shape (d, )
+        The gradient vector.
+
+    """
+    grad = tx.T.dot(sigmoid(tx.dot(w)) - y) / y.size
+    return grad + 2 * lambda_ * w
+
+
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
+    """Logistic Regression
+
+     This function performs logistic regression using gradient descent optimization.
+
+     Parameters
+     ----------
+    y : numpy array of shape (n, )
+        The output vector of the training set
+    tx : numpy array of shape (n, d)
+        The input matrix of the training set (with the bias term)
+    lambda_ : float
+        The regularization parameter
+    initial_w : numpy array of shape (d, )
+        The initial weights vector.
+    max_iters : int
+        The maximum number of iterations for gradient descent.
+    gamma : float
+        The learning rate.
+
+    Returns
+    -------
+    w : numpy array
+         The final weights vector after optimization.
+    loss : float
+         The final loss value after optimization.
+
+    """
     w = initial_w
-    loss = calculate_loss(y, tx, w)
 
     for _ in range(max_iters):
-        grad = calculate_grad(y, tx, w)
+        grad = calculate_reg_grad(y, tx, w, lambda_)
 
-    #    w = w - gamma * 
+        w = w - gamma * grad
 
-    raise NotImplementedError
+    loss = calculate_loss(y, tx, w)
+    return w, loss
