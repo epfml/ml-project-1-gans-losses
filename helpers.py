@@ -2,25 +2,67 @@
 import csv
 import numpy as np
 
+def preprocess_data(x, y, nan_rate_threshold=0.5, in_place=False):
+    """Function to preprocess the data.
 
-def load_csv_data(data_path, sub_sample=False):
-    """Loads data and returns y (class labels), tX (features) and ids (event ids)"""
-    y = np.genfromtxt(data_path, delimiter=",", skip_header=1, dtype=str, usecols=1)
-    x = np.genfromtxt(data_path, delimiter=",", skip_header=1)
-    ids = x[:, 0].astype(np.int)
-    input_data = x[:, 2:]
+    We remove the features with a nan rate higher than the threshold
+    and those with no variance (std = 0) and replace the nan values
+    with the mean of the feature.
 
-    # convert class labels from strings to binary (-1,1)
-    yb = np.ones(len(y))
-    yb[np.where(y == "b")] = -1
+    Parameters
+    ----------
+    x : numpy array of shape (n, d)
+        The input matrix of the training set
+    y : numpy array of shape (n, )
+        The output vector of the training set
+    nan_rate_threshold : float
+        The threshold to remove features with a nan rate higher than it
+    in_place : Boolean
+        This variable indicates if we want to modify the input matrix or not
+    
+    Returns
+    -------
+    x : numpy array of shape (n, d')
+        The input matrix of the training set after preprocessing
+    y : numpy array of shape (n, )
+        The output vector of the training set after preprocessing
+    """
+    if not in_place:
+        x = x.copy()
+        y = y.copy()
+
+    # Remove features with a nan rate higher than the threshold
+    nan_rate = np.sum(np.isnan(x), axis=0) / x.shape[0]
+    x = x[:, nan_rate < nan_rate_threshold]
+
+    # Replace the nan values with the mean of the feature
+    nan_indices = np.where(np.isnan(x))
+    x[nan_indices] = np.nanmean(x, axis=0)[nan_indices[1]]
+
+    # Remove features with no variance
+    std = np.std(x, axis=0)
+    x = x[:, std != 0]
+
+    # Normalize the data
+    x = (x - np.mean(x, axis=0)) / np.std(x, axis=0)
+
+    return x, y
+
+
+
+def load_csv_data(data_folder_path, sub_sample=False):
+    """Loads data and returns y (class labels), tX (features)"""
+    y_path = data_folder_path + "y_train.csv"
+    x_path = data_folder_path + "X_train.csv"
+    y = np.genfromtxt(y_path, delimiter=",", skip_header=1)
+    x = np.genfromtxt(x_path, delimiter=",", skip_header=1)
 
     # sub-sample
     if sub_sample:
-        yb = yb[::50]
-        input_data = input_data[::50]
-        ids = ids[::50]
+        y = y[::50]
+        x = x[::50]
 
-    return yb, input_data, ids
+    return x, y
 
 
 def create_csv_submission(ids, y_pred, name):
