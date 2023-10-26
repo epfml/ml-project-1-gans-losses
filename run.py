@@ -15,7 +15,8 @@ if __name__ == "__main__":
         exit(1)
 
     # Preprocess the data
-    x, y = hlp.preprocess_data(x, y, nan_rate_threshold=0.5, in_place=True)
+    preprocess_config = hlp.find_preprocessing_config(x, categorical_threshold=3)
+    x = hlp.preprocess_data_config(x, preprocess_config, nan_rate_threshold=0.5, in_place=True)
 
     # Split data to have 85% for training and 15% for testing to get accuracy
     split_point = int(0.85 * x.shape[0])
