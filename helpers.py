@@ -2,52 +2,111 @@
 import csv
 import numpy as np
 
-def preprocess_data(x, y, nan_rate_threshold=0.5, in_place=False):
-    """Function to preprocess the data.
+def find_preprocessing_config(x, categorical_threshold=3):
+    """Function to find the preprocessing configuration.
 
-    We remove the features with a nan rate higher than the threshold
-    and those with no variance (std = 0) and replace the nan values
-    with the mean of the feature.
+    We need the preprocessing configuration to preprocess the test set.
+
+    We compute the mean, the standard deviation and the nan rate of each feature.
 
     Parameters
     ----------
     x : numpy array of shape (n, d)
         The input matrix of the training set
-    y : numpy array of shape (n, )
-        The output vector of the training set
-    nan_rate_threshold : float
-        The threshold to remove features with a nan rate higher than it
-    in_place : Boolean
-        This variable indicates if we want to modify the input matrix or not
+    categorical_threshold : int
+        The threshold to determine if a feature is categorical or not,
+        namely if the number of unique values of the feature is lower than it
     
     Returns
     -------
-    x : numpy array of shape (n, d')
-        The input matrix of the training set after preprocessing
-    y : numpy array of shape (n, )
-        The output vector of the training set after preprocessing
+    config: dict from column index to necessary preprocessing information
+        The preprocessing information for one column consists of:
+            - nan_rate: the nan rate of the column
+            - categorical: a boolean indicating if the column is categorical or not
+            - categories: the unique values of the column if it is categorical
+            - std: the standard deviation of the column
+            - mean: the mean of the column
     """
+
+    config = {}
+    nan_rate = np.sum(np.isnan(x), axis=0) / x.shape[0]
+    std = np.nanstd(x, axis=0)
+    mean = np.nanmean(x, axis=0)
+    categorical = np.array([len(np.unique(x[:, i])) < categorical_threshold for i in range(x.shape[1])])
+    for i in range(x.shape[1]):
+        config[i] = {"nan_rate": nan_rate[i],
+                     "std": std[i],
+                     "mean": mean[i]}
+        unique_values = np.unique(x[:, i])
+        unique_values = unique_values[~np.isnan(unique_values)]
+        config[i]["categorical"] = len(unique_values) < categorical_threshold
+        if config[i]["categorical"]:
+            config[i]["categories"] = unique_values
+
+    return config
+
+def preprocess_data_config(x, config, nan_rate_threshold=0.5, in_place=False):
+    """Function to preprocess the data based on the preprocessing configuration.
+
+    We remove the features with a nan rate higher than the threshold
+    and those with no variance (std = 0). We standardieze the data
+    and replace the remaining nan values with 0 (as it is the mean
+    of the standardized data).
+
+    Parameters
+    ----------
+    x : numpy array of shape (n, d)
+        The input matrix of the training set
+    config: dict from column index to necessary preprocessing information
+        The preprocessing information for one column consists of:
+            - nan_rate: the nan rate of the column
+            - std: the standard deviation of the column
+            - mean: the mean of the column
+    nan_rate_threshold : float (between 0 and 1)
+        The threshold to remove features with a nan rate higher than it
+    in_place : Boolean
+        This variable indicates if we want to modify the input matrix or not
+    """
+
     if not in_place:
         x = x.copy()
-        y = y.copy()
 
-    # Remove features with a nan rate higher than the threshold
-    nan_rate = np.sum(np.isnan(x), axis=0) / x.shape[0]
-    x = x[:, nan_rate < nan_rate_threshold]
+    # Figure out which features to remove
+    to_remove = []
+    valid_features = lambda x, to_remove: set(range(x.shape[1])) - set(to_remove)
+    for i in range(x.shape[1]):
+        if config[i]["nan_rate"] > nan_rate_threshold:
+            to_remove.append(i)
+        elif config[i]["std"] == 0:
+            to_remove.append(i)
 
-    # Replace the nan values with the mean of the feature
-    nan_indices = np.where(np.isnan(x))
-    x[nan_indices] = np.nanmean(x, axis=0)[nan_indices[1]]
+    for i in valid_features(x, to_remove):
+        print(i)
+        if not config[i]["categorical"]:
+            # Standardize the non-categorical data
+            x[:, i] = (x[:, i] - config[i]["mean"]) / config[i]["std"]
+            
+            # Replace the nan values with 0
+            nan_indices = np.where(np.isnan(x[:, i]))
+            x[nan_indices, i] = 0
+        else:
+            # One-hot encoding the categorical data
+            categories = config[i]["categories"]
+            is_category_column = np.zeros_like(x[:, i])
+            for value in categories:
+                new_column = (x[:, i] == value).astype(int)
+                is_category_column = np.logical_or(is_category_column, new_column)
+                x = np.column_stack((x, new_column))
+            
+            # One-hot encoding the values different than the categories
+            x = np.column_stack((x, is_category_column))
 
-    # Remove features with no variance
-    std = np.std(x, axis=0)
-    x = x[:, std != 0]
+            to_remove.append(i)
+    
+    # Remove the columns that we don't need anymore
+    x = np.delete(x, to_remove, axis=1)
 
-    # Normalize the data
-    x = (x - np.mean(x, axis=0)) / np.std(x, axis=0)
-
-    return x, y
-
+    return x
 
 
 def load_csv_data(data_folder_path, sub_sample=False):
