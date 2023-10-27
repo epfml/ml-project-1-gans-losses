@@ -2,6 +2,7 @@
 import csv
 import numpy as np
 
+
 def find_preprocessing_config(x, categorical_threshold=3):
     """Function to find the preprocessing configuration.
 
@@ -45,6 +46,7 @@ def find_preprocessing_config(x, categorical_threshold=3):
 
     return config
 
+
 def preprocess_data_config(x, config, nan_rate_threshold=0.5, in_place=False):
     """Function to preprocess the data based on the preprocessing configuration.
 
@@ -81,11 +83,10 @@ def preprocess_data_config(x, config, nan_rate_threshold=0.5, in_place=False):
             to_remove.append(i)
 
     for i in valid_features(x, to_remove):
-        print(i)
         if not config[i]["categorical"]:
             # Standardize the non-categorical data
             x[:, i] = (x[:, i] - config[i]["mean"]) / config[i]["std"]
-            
+
             # Replace the nan values with 0
             nan_indices = np.where(np.isnan(x[:, i]))
             x[nan_indices, i] = 0
@@ -97,12 +98,12 @@ def preprocess_data_config(x, config, nan_rate_threshold=0.5, in_place=False):
                 new_column = (x[:, i] == value).astype(int)
                 is_category_column = np.logical_or(is_category_column, new_column)
                 x = np.column_stack((x, new_column))
-            
+
             # One-hot encoding the values different than the categories
             x = np.column_stack((x, is_category_column))
 
             to_remove.append(i)
-    
+
     # Remove the columns that we don't need anymore
     x = np.delete(x, to_remove, axis=1)
 
@@ -124,6 +125,14 @@ def load_csv_data(data_folder_path, sub_sample=False):
     return x, y
 
 
+def load_csv_data_test(test_folder_path):
+    """Loads data and returns tX (features)"""
+    x_path = test_folder_path + "x_test.csv"
+    x = np.genfromtxt(x_path, delimiter=",", skip_header=1)
+
+    return x
+
+
 def create_csv_submission(ids, y_pred, name):
     """
     Creates an output file in .csv format for submission to Kaggle or AIcrowd
@@ -131,7 +140,7 @@ def create_csv_submission(ids, y_pred, name):
                y_pred (predicted class labels)
                name (string name of .csv output file to be created)
     """
-    with open(name, "w") as csvfile:
+    with open(name, "w", newline='') as csvfile:
         fieldnames = ["Id", "Prediction"]
         writer = csv.DictWriter(csvfile, delimiter=",", fieldnames=fieldnames)
         writer.writeheader()

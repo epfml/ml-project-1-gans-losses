@@ -4,34 +4,11 @@ import numpy as np
 from implementations import *
 
 
-def convergence_plot(n_iter, gamma):
-    ''' Plot the number of iterations needed to reach convergence for a given gamma value
-
-    Parameters
-    ----------
-    n_iter : list of int
-        The number of iterations needed to reach convergence for each gamma value
-    gamma : list of float
-        The gamma values for which the number of iterations is computed
-
-    Returns
-    -------
-    None
-
-    Shows the final plot
-    '''
-
-    x_label = "Gamma"
-    y_label = "Number of iterations"
-
-    fig, ax = plt.subplots()
-    ax.set_xlabel(x_label)
-    ax.set_ylabel(y_label)
-    ax.set_title("Number of iterations for convergence")
-    ax.plot(gamma, n_iter, 'o')
-    ax.plot(gamma, n_iter, 'k-')
-
-    plt.show()
+# The value for the threshold_loss was chosen experimentally by checking the convergence
+# value of the Log-Likelihood loss using logistic regression with a small gamma(0.01)
+# over 1000 iterations.
+threshold_loss = 0.23
+threshold = 0.001
 
 
 def build_k_indices(y, k_fold, seed):
@@ -62,21 +39,40 @@ def build_k_indices(y, k_fold, seed):
     return np.array(k_indices)
 
 
-def find_best_gamma_logistic(y, x, initial_w, gammas, epochs, max_iterations, threshold, threshold_loss):
+def find_best_gamma(y, x, initial_w, gammas, max_iterations):
+    """
+    Find the best gamma parameter for logistic regression using an iterative approach.
+
+    This function iterates through a range of gamma values to identify the optimal gamma
+    for logistic regression. It measures the number of iterations needed for each gamma
+    to converge, and selects the gamma that achieves convergence in the fewest iterations.
+
+    Parameters
+    ----------
+    y : numpy array
+        The target values or labels.
+    x : numpy array
+        The feature matrix.
+    initial_w : numpy array
+        The initial weights for logistic regression.
+    gammas : list of float
+        A list of gamma values to evaluate.
+    max_iterations : int
+        The maximum number of iterations for logistic regression.
+
+    Returns
+    -------
+    best_gamma : float
+        The gamma value that results in the fastest convergence.
+    """
     nr_iters_per_gamma = []
     for gamma in gammas:
         iters = 0
         w = initial_w.copy()
         prev_loss = 0
         last_three_diffs = 0
-        for k in range(epochs):
-            k_indices = build_k_indices(y, epochs, 12)
-            tr_indices = k_indices[~(np.arange(k_indices.shape[0]) == k)]
-            tr_indices = tr_indices.reshape(-1)
-            y_tr = y[tr_indices]
-            x_tr = x[tr_indices]
-
-            w, loss = logistic_regression(y_tr, x_tr, w, max_iterations, gamma)
+        for _ in range(max_iterations):
+            w, loss = logistic_regression(y, x, w, 1, gamma)
 
             iters += 1
 
@@ -93,54 +89,11 @@ def find_best_gamma_logistic(y, x, initial_w, gammas, epochs, max_iterations, th
         if last_three_diffs < 3:
             nr_iters_per_gamma.append(iters)
 
-    print(nr_iters_per_gamma)
-
     ind_min = np.argmin(nr_iters_per_gamma)
 
-    return gammas[ind_min]
+    best_gamma = gammas[ind_min]
 
-
-def cross_validation_util_logistic(y, x, initial_w, k_indices, k, max_iters, gamma):
-    """Perform logistic regression within a cross-validation fold and calculate loss.
-
-    This function performs logistic regression within a specific fold of a k-fold
-    cross-validation, and computes the training and testing losses.
-
-    Parameters
-    ----------
-    y : numpy array of shape (n, )
-        The target values or labels for the entire dataset.
-    x : numpy array of shape (n, d)
-        The input features for the entire dataset.
-    initial_w : numpy array of shape (d, )
-        The initial weights for logistic regression.
-    k_indices : numpy array of shape (k_fold, n/k_fold)
-        An array of indices representing the k-fold partitions of the dataset.
-    k : int
-        The current fold index for cross-validation.
-    max_iters : int
-        The maximum number of iterations for logistic regression.
-    gamma : float
-        The learning rate for logistic regression.
-
-    Returns
-    -------
-    loss_tr : float
-        The training loss for logistic regression within the current fold.
-    loss_te : float
-        The testing loss for logistic regression within the current fold.
-    """
-    te_indices = k_indices[k]
-    tr_indices = k_indices[~(np.arange(k_indices.shape[0]) == k)]
-    tr_indices = tr_indices.reshape(-1)
-    y_te = y[te_indices]
-    y_tr = y[tr_indices]
-    x_te = x[te_indices]
-    x_tr = x[tr_indices]
-
-    w, loss = logistic_regression(y_tr, x_tr, initial_w, max_iters, gamma)
-
-    return loss, compute_mse_loss(y_te, x_te, w)
+    return best_gamma
 
 
 def cross_validation_util_reg_logistic(y, x, initial_w, k_indices, k, max_iters, gamma, lambda_):
@@ -185,17 +138,14 @@ def cross_validation_util_reg_logistic(y, x, initial_w, k_indices, k, max_iters,
 
     w, loss = reg_logistic_regression(y_tr, x_tr, lambda_, initial_w, max_iters, gamma)
 
-    loss_tr = np.sqrt(2 * loss)
-    loss_te = np.sqrt(2 * compute_mse_loss(y_te, x_te, w))
-
-    return loss_tr, loss_te
+    return loss, calculate_log_loss(y_te, x_te, w)
 
 
 def cross_validation_reg_logistic(y, x, k_fold, gamma, lambdas, initial_w, max_iters):
     """Perform cross-validated regularized logistic regression to find the best hyperparameters gamma and lambda.
 
     This function performs cross-validated regularized logistic regression on a dataset for different
-    lambda values and identifies the best combination of gamma and lambda that leads to the lowest test RMSE.
+    lambda values and identifies the best combination of gamma and lambda that leads to the lowest test loss.
 
     Parameters
     ----------
@@ -217,25 +167,29 @@ def cross_validation_reg_logistic(y, x, k_fold, gamma, lambdas, initial_w, max_i
     Returns
     -------
     best_lambda : float
-        The best lambda value that minimizes test RMSE.
-    best_rmse : float
-        The lowest test RMSE achieved with the best gamma and lambda combination.
+        The best lambda value that minimizes test loss.
+    best_loss : float
+        The lowest test loss achieved with the best gamma and lambda combination.
     """
     seed = 12
     k_fold = k_fold
 
     k_indices = build_k_indices(y, k_fold, seed)
 
-    rmse_te = []
+    losses_te = []
 
     for lambda_ in lambdas:
-        rmse_te_tmp = []
+        losses_te_tmp = []
         for k in range(k_fold):
             loss_tr, loss_te = cross_validation_util_reg_logistic(y, x, initial_w, k_indices, k, max_iters, gamma,
                                                                   lambda_)
-            rmse_te_tmp.append(loss_te)
-        rmse_te.append(np.mean(rmse_te_tmp))
+            losses_te_tmp.append(loss_te)
 
-    ind_best = np.argmin(rmse_te)
+        losses_te.append(np.mean(losses_te_tmp))
 
-    return lambdas[ind_best], rmse_te[ind_best]
+    ind_best = np.argmin(losses_te)
+
+    best_lambda = lambdas[ind_best]
+    best_loss = losses_te[ind_best]
+
+    return best_lambda, best_loss

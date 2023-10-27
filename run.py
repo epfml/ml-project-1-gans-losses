@@ -1,51 +1,50 @@
 """File for loading the dataset, training the model and making predictions."""
 
-import numpy as np
 import helpers as hlp
-
+import numpy as np
+from optimization_helpers import *
 from implementations import *
-from cross_validation import *
 
 if __name__ == "__main__":
     # Load the training data if present
     try:
-        x, y = hlp.load_csv_data("data/", sub_sample=False)
+        x_train, y_train = hlp.load_csv_data("data/", sub_sample=False)
     except:
         print("Training data not found. Please make sure you extracted the data.")
         exit(1)
 
+    try:
+        x_test = hlp.load_csv_data_test("data/")
+    except:
+        print("Testing data not found. Please make sure you extracted the data.")
+        exit(1)
+
     # Preprocess the data
-    preprocess_config = hlp.find_preprocessing_config(x, categorical_threshold=3)
-    x = hlp.preprocess_data_config(x, preprocess_config, nan_rate_threshold=0.5, in_place=True)
+    preprocess_config = hlp.find_preprocessing_config(x_train, categorical_threshold=3)
+    x_train = hlp.preprocess_data_config(x_train, preprocess_config, nan_rate_threshold=0.2, in_place=True)
 
-    # Split data to have 85% for training and 15% for testing to get accuracy
-    split_point = int(0.85 * x.shape[0])
+    x_test = hlp.preprocess_data_config(x_test, preprocess_config, nan_rate_threshold=0.2, in_place=True)
 
-    x_train = x[:split_point]
-    y_train = y[:split_point]
-
-    x_test = x[split_point:]
-    y_test = y[split_point:]
-
-    gammas = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45]
-    lambdas = np.logspace(-10, -2, 10)
-
-    initial_w = np.random.normal(0.5, 0.2, x.shape[1])
+    # initial_w will be a vector containing normal distributed values between 0 and 1
+    initial_w = np.random.normal(0.5, 0.2, x_train.shape[1])
     initial_w = np.clip(initial_w, 0, 1)
 
-    k_fold = 8
+    max_iters = 500
+    gamma = 0.2
 
-    max_iterations = 100
-    epochs = 100
-    threshold = 0.001
+    # The value of lambda_ was chosen experimentally using the function cross_validation_reg_logistic
+    lambda_ = 0.001488
 
-    threshold_loss = 0.67
+    w, loss = reg_logistic_regression(y_train, x_train, lambda_, initial_w, max_iters, gamma)
 
-    best_gamma = find_best_gamma_logistic(y, x, initial_w, gammas, epochs, max_iterations, threshold, threshold_loss)
+    # id will be the first id used in the submission file. It was chosen according to the example in
+    # sample-submission.csv
+    id = len(y_train)
 
-    print(best_gamma)
+    # We compute the y predictions using our trained model. Each value will be approximated to 0 or 1
+    y_pred = x_test.dot(w)
+    y_pred = np.where(y_pred < 0.5, -1, np.where(y_pred >= 0.5, 1, y_pred))
 
-    # best_lambda, best_rmse = cross_validation_reg_logistic(y, x, k_fold, best_gamma, lambdas, initial_w,
-    #                                                                    max_iterations)
-    #
-    # print(best_lambda, best_rmse)
+    ids = [id + i for i in range(len(y_pred))]
+
+    hlp.create_csv_submission(ids, y_pred, "submission.csv")
