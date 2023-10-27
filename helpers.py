@@ -2,6 +2,46 @@
 import csv
 import numpy as np
 
+def balance_data(x, y, in_place=False):
+    ''' Function to balance the rate of each unique value in y
+
+    Parameters
+    ----------
+    x : numpy array of shape (n, d)
+        The input matrix of the training set
+    y : numpy array of shape (n, )
+        The output vector of the training set
+    
+    Returns
+    -------
+    x_balanced : numpy array of shape (n, d)
+        The input matrix of the training set balanced
+    y_balanced : numpy array of shape (n, )
+        The output vector of the training set balanced
+    '''
+    if not in_place:
+        x = x.copy()
+        y = y.copy()
+
+    unique, counts = np.unique(y, return_counts=True)
+
+    # Get the number of samples for the most frequent class
+    max_count = np.max(counts)
+
+    # Get the indices of the samples for each class
+    indices = {}
+    for i in range(len(unique)):
+        indices[unique[i]] = np.where(y == unique[i])[0]
+    
+    # Balance each class by randomly sampling from it
+    for i in range(len(unique)):
+        samples_to_append = max_count - counts[i]
+        indices_to_append = np.random.choice(indices[unique[i]], samples_to_append)
+        x = np.append(x, x[indices_to_append], axis=0)
+        y = np.append(y, y[indices_to_append], axis=0)
+    
+    return x, y
+
 def find_preprocessing_config(x, categorical_threshold=3):
     """Function to find the preprocessing configuration.
 
