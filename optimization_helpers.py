@@ -3,11 +3,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from implementations import *
 
-
 # The value for the threshold_loss was chosen experimentally by checking the convergence
 # value of the Log-Likelihood loss using logistic regression with a small gamma(0.01)
 # over 1000 iterations.
-threshold_loss = 0.23
+threshold_loss = 0.48
 threshold = 0.001
 
 
