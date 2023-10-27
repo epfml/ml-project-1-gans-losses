@@ -5,5 +5,5 @@ data/*
 __pycache__
 .pytest_cache
 playground.ipynb
-
+visual/
 *.csv
