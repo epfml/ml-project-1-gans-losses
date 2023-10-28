@@ -25,11 +25,15 @@ if __name__ == "__main__":
 
     # Preprocess the data
     preprocess_config = hlp.find_preprocessing_config(x_train, categorical_threshold=3)
-    x_train = hlp.preprocess_data_config(x_train, preprocess_config, nan_rate_threshold=0.43, in_place=True)
+    x_train = hlp.preprocess_data_config(
+        x_train, preprocess_config, nan_rate_threshold=0.5, in_place=True
+    )
 
     x_train, y_train = hlp.balance_data(x_train, y_train)
 
-    x_test = hlp.preprocess_data_config(x_test, preprocess_config, nan_rate_threshold=0.43, in_place=True)
+    x_test = hlp.preprocess_data_config(
+        x_test, preprocess_config, nan_rate_threshold=0.5, in_place=True
+    )
 
     # initial_w will be a vector containing normal distributed values between 0 and 1
     initial_w = np.random.normal(0.5, 0.2, x_train.shape[1])
@@ -41,7 +45,9 @@ if __name__ == "__main__":
     # The value of lambda_ was chosen experimentally using the function cross_validation_reg_logistic
     lambda_ = 0.00041753189365604
 
-    w, loss = reg_logistic_regression(y_train, x_train, lambda_, initial_w, max_iters, gamma)
+    w, loss = reg_logistic_regression(
+        y_train, x_train, lambda_, initial_w, max_iters, gamma
+    )
 
     # We compute the y predictions using our trained model. Each value will be approximated to 0 or 1
     y_pred = x_test.dot(w)

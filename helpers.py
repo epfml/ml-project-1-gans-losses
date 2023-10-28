@@ -4,7 +4,7 @@ import numpy as np
 
 
 def balance_data(x, y, in_place=False):
-    ''' Function to balance the rate of each unique value in y
+    """Function to balance the rate of each unique value in y
 
     Parameters
     ----------
@@ -12,14 +12,14 @@ def balance_data(x, y, in_place=False):
         The input matrix of the training set
     y : numpy array of shape (n, )
         The output vector of the training set
-    
+
     Returns
     -------
     x_balanced : numpy array of shape (n, d)
         The input matrix of the training set balanced
     y_balanced : numpy array of shape (n, )
         The output vector of the training set balanced
-    '''
+    """
     if not in_place:
         x = x.copy()
         y = y.copy()
@@ -58,7 +58,7 @@ def find_preprocessing_config(x, categorical_threshold=3):
     categorical_threshold : int
         The threshold to determine if a feature is categorical or not,
         namely if the number of unique values of the feature is lower than it
-    
+
     Returns
     -------
     config: dict from column index to necessary preprocessing information
@@ -74,11 +74,11 @@ def find_preprocessing_config(x, categorical_threshold=3):
     nan_rate = np.sum(np.isnan(x), axis=0) / x.shape[0]
     std = np.nanstd(x, axis=0)
     mean = np.nanmean(x, axis=0)
-    categorical = np.array([len(np.unique(x[:, i])) < categorical_threshold for i in range(x.shape[1])])
+    categorical = np.array(
+        [len(np.unique(x[:, i])) < categorical_threshold for i in range(x.shape[1])]
+    )
     for i in range(x.shape[1]):
-        config[i] = {"nan_rate": nan_rate[i],
-                     "std": std[i],
-                     "mean": mean[i]}
+        config[i] = {"nan_rate": nan_rate[i], "std": std[i], "mean": mean[i]}
         unique_values = np.unique(x[:, i])
         unique_values = unique_values[~np.isnan(unique_values)]
         config[i]["categorical"] = len(unique_values) < categorical_threshold
@@ -181,7 +181,7 @@ def create_csv_submission(ids, y_pred, name):
                y_pred (predicted class labels)
                name (string name of .csv output file to be created)
     """
-    with open(name, "w", newline='') as csvfile:
+    with open(name, "w", newline="") as csvfile:
         fieldnames = ["Id", "Prediction"]
         writer = csv.DictWriter(csvfile, delimiter=",", fieldnames=fieldnames)
         writer.writeheader()

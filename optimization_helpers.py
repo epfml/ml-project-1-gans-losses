@@ -33,7 +33,7 @@ def build_k_indices(y, k_fold, seed):
     interval = int(num_row / k_fold)
     np.random.seed(seed)
     indices = np.random.permutation(num_row)
-    k_indices = [indices[k * interval: (k + 1) * interval] for k in range(k_fold)]
+    k_indices = [indices[k * interval : (k + 1) * interval] for k in range(k_fold)]
 
     return np.array(k_indices)
 
@@ -95,7 +95,9 @@ def find_best_gamma(y, x, initial_w, gammas, max_iterations):
     return best_gamma
 
 
-def cross_validation_util_reg_logistic(y, x, initial_w, k_indices, k, max_iters, gamma, lambda_):
+def cross_validation_util_reg_logistic(
+    y, x, initial_w, k_indices, k, max_iters, gamma, lambda_
+):
     """Perform regularized logistic regression within a cross-validation fold and calculate loss.
 
     This function performs regularized logistic regression within a specific fold of a k-fold
@@ -180,8 +182,9 @@ def cross_validation_reg_logistic(y, x, k_fold, gamma, lambdas, initial_w, max_i
     for lambda_ in lambdas:
         losses_te_tmp = []
         for k in range(k_fold):
-            loss_tr, loss_te = cross_validation_util_reg_logistic(y, x, initial_w, k_indices, k, max_iters, gamma,
-                                                                  lambda_)
+            loss_tr, loss_te = cross_validation_util_reg_logistic(
+                y, x, initial_w, k_indices, k, max_iters, gamma, lambda_
+            )
             losses_te_tmp.append(loss_te)
 
         losses_te.append(np.mean(losses_te_tmp))
