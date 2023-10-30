@@ -56,4 +56,4 @@ if __name__ == "__main__":
 
     ids = [id + i for i in range(len(y_pred))]
 
-    hlp.create_csv_submission(ids, y_pred, "submission.csv")
+    hlp.create_csv_submission(ids, y_pred, "y_test.csv")

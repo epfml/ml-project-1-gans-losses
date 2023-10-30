@@ -36,3 +36,9 @@ In this section we will present the functions used for logistic regression and r
 - reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma) : The function performs regularized logistic regression using gradient descent optimization.
 
 The functions in this section are implemented in *_implementations.py_*.
+
+## Training and Running the model
+To train and run the model, a user should call *python _run.py_*. For this to work, the x_train.csv, y_train.csv, x_test.csv
+files should be inside a folder called data, which is located in the same folder as the script *_run.py_*. The script generates
+a y_test.csv file, which contains the results of running on x_test.csv the model trained on x_train.csv and y_train.csv using Regularized 
+Logistic Regression with gamma 0.3 and lambda 0.0004175(found using cross-validation) for a number of 600 iterations.
