@@ -59,3 +59,31 @@ def nan_rate_ccdf(x):
     ax.plot(nan_rate, cdf, 'o')
     ax.plot(nan_rate, cdf, 'k-')
     plt.show()
+
+def plot_errors(lambdas, errors):
+    """ Plot the errors for different lambdas
+
+    Parameters
+    ----------
+    lambdas : numpy array of shape (n, )
+        The lambdas used for the ridge regression
+    errors : numpy array of shape (n, )
+        The errors for each lambda
+    
+    Returns
+    -------
+    None
+
+    Shows the final plot
+    """
+
+    x_label = "Lambda"
+    y_label = "Error"
+
+    fig, ax = plt.subplots()
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    ax.set_title("Error for different lambdas")
+    ax.plot(lambdas, errors, "o")
+    ax.plot(lambdas, errors, "k-")
+    plt.show()
