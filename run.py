@@ -49,7 +49,8 @@ if __name__ == "__main__":
         y_train, x_train, lambda_, initial_w, max_iters, gamma
     )
 
-    # We compute the y predictions using our trained model. Each value will be approximated to 0 or 1
+    # We compute the y predictions using our trained model. Each value will be approximated to -1 or 1,
+    # according to what the AICrowd submission is expecting.
     y_pred = x_test.dot(w)
     y_pred = np.where(y_pred < 0.5, -1, np.where(y_pred >= 0.5, 1, y_pred))
 
