@@ -12,7 +12,7 @@ def compute_mse_loss(y, tx, w):
     y : numpy array of shape (n, )
         The output vector of the training set
     tx : numpy array of shape (n, d)
-        The input matrix of the training set (with the bias term)
+        The input matrix of the training set
     w : numpy array of shape (d, )
         The weights vector
 
@@ -35,7 +35,7 @@ def compute_mse_gradient(y, tx, w):
     y : numpy array of shape (n, )
         The output vector of the training set
     tx : numpy array of shape (n, d)
-        The input matrix of the training set (with the bias term)
+        The input matrix of the training set
     w : numpy array of shape (d, )
         The weights vector
 
@@ -58,7 +58,7 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
     y : numpy array of shape (n, )
         The output vector of the training set
     tx : numpy array of shape (n, d)
-        The input matrix of the training set (with the bias term)
+        The input matrix of the training set
     initial_w : numpy array of shape (d, )
         The initial weights vector
     max_iters : int
@@ -93,7 +93,7 @@ def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
     y : numpy array of shape (n, )
         The output vector of the training set
     tx : numpy array of shape (n, d)
-        The input matrix of the training set (with the bias term)
+        The input matrix of the training set
     initial_w : numpy array of shape (d, )
         The initial weights vector
     max_iters : int
@@ -132,7 +132,7 @@ def least_squares(y, tx):
     y : numpy array of shape (n, )
         The output vector of the training set
     tx : numpy array of shape (n,d)
-        The input matrix of the training set (with the bias term)
+        The input matrix of the training set
 
     Returns
     -------
@@ -155,7 +155,7 @@ def ridge_regression(y, tx, lambda_):
     y : numpy array of shape (n, )
         The output vector of the training set
     tx : numpy array of shape (n, d)
-        The input matrix of the training set (with the bias term)
+        The input matrix of the training set
     lambda_ : float
         The regularization parameter
 
@@ -202,7 +202,7 @@ def calculate_log_loss(y, tx, w):
     y : numpy array of shape (n, )
         The output vector of the training set
     tx : numpy array of shape (n, d)
-        The input matrix of the training set (with the bias term)
+        The input matrix of the training set
     w : numpy array of shape (d, )
         The weights vector.
 
@@ -224,7 +224,7 @@ def calculate_log_grad(y, tx, w):
     y : numpy array of shape (n, )
         The output vector of the training set
     tx : numpy array of shape (n, d)
-        The input matrix of the training set (with the bias term)
+        The input matrix of the training set
     w : numpy array of shape (d, )
         The weights vector.
 
@@ -247,7 +247,7 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
     y : numpy array of shape (n, )
          The output vector of the training set
      tx : numpy array of shape (n, d)
-         The input matrix of the training set (with the bias term)
+         The input matrix of the training set
      initial_w : numpy array of shape (d, )
          The initial weights vector.
      max_iters : int
@@ -284,7 +284,7 @@ def calculate_reg_grad(y, tx, w, lambda_):
     y : numpy array of shape (n, )
         The output vector of the training set
     tx : numpy array of shape (n, d)
-        The input matrix of the training set (with the bias term)
+        The input matrix of the training set
     w : numpy array of shape (d, )
         The weights vector.
     lambda_ : float
@@ -301,16 +301,16 @@ def calculate_reg_grad(y, tx, w, lambda_):
 
 
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
-    """Logistic Regression
+    """Regularized Logistic Regression
 
-     This function performs logistic regression using gradient descent optimization.
+     This function performs regularized logistic regression using gradient descent optimization.
 
      Parameters
      ----------
     y : numpy array of shape (n, )
         The output vector of the training set
     tx : numpy array of shape (n, d)
-        The input matrix of the training set (with the bias term)
+        The input matrix of the training set
     lambda_ : float
         The regularization parameter
     initial_w : numpy array of shape (d, )
