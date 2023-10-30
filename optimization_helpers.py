@@ -143,10 +143,10 @@ def cross_validation_util_reg_logistic(
 
 
 def cross_validation_reg_logistic(y, x, k_fold, gamma, lambdas, initial_w, max_iters):
-    """Perform cross-validated regularized logistic regression to find the best hyperparameters gamma and lambda.
+    """Perform cross-validated regularized logistic regression to find the best hyperparameter lambda.
 
     This function performs cross-validated regularized logistic regression on a dataset for different
-    lambda values and identifies the best combination of gamma and lambda that leads to the lowest test loss.
+    lambda values and identifies the best lambda that leads to the lowest test loss.
 
     Parameters
     ----------

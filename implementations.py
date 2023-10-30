@@ -301,9 +301,9 @@ def calculate_reg_grad(y, tx, w, lambda_):
 
 
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
-    """Logistic Regression
+    """Regularized Logistic Regression
 
-     This function performs logistic regression using gradient descent optimization.
+     This function performs regularized logistic regression using gradient descent optimization.
 
      Parameters
      ----------
